@@ -1,0 +1,255 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ----------------------------------------------------
+// ENUMS
+// ----------------------------------------------------
+
+enum Role {
+  ADMIN
+  DOCTOR
+  PATIENT
+}
+
+enum AppointmentStatus {
+  PENDING
+  CONFIRMED
+  COMPLETED
+  CANCELLED
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  PARTIAL
+  REFUNDED
+  FAILED
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+}
+
+// ----------------------------------------------------
+// MODELS
+// ----------------------------------------------------
+
+model User {
+  id           String   @id @default(uuid())
+  fullName     String
+  email        String   @unique
+  password     String
+  role         Role     @default(PATIENT)
+  phoneNumber  String?
+  profileImage String?
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  patient       Patient?
+  doctor        Doctor?
+  notifications Notification[]
+
+  @@index([email])
+  @@index([role])
+}
+
+model Patient {
+  id               String    @id @default(uuid())
+  userId           String    @unique
+  user             User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  dateOfBirth      DateTime?
+  gender           Gender?
+  bloodGroup       String?
+  address          String?
+  emergencyContact String?
+  height           Float?
+  weight           Float?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  appointments   Appointment[]
+  prescriptions  Prescription[]
+  medicalRecords MedicalRecord[]
+  bills          Bill[]
+  uploadedFiles  UploadedFile[]
+
+  @@index([userId])
+}
+
+model Doctor {
+  id                   String   @id @default(uuid())
+  userId               String   @unique
+  user                 User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  specialization       String
+  qualification        String
+  experience           Int
+  consultationFee      Float
+  department           String
+  licenseNumber        String   @unique
+  availabilityStatus   Boolean  @default(true)
+  address              String?
+  bio                  String?
+  consultationDuration Int?     @default(30)
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  appointments   Appointment[]
+  prescriptions  Prescription[]
+  medicalRecords MedicalRecord[]
+  uploadedFiles  UploadedFile[]
+
+  @@index([userId])
+  @@index([department])
+  @@index([specialization])
+}
+
+model Appointment {
+  id              String            @id @default(uuid())
+  patientId       String
+  patient         Patient           @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  doctorId        String
+  doctor          Doctor            @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+  appointmentDate DateTime
+  appointmentTime String
+  reason          String?
+  status          AppointmentStatus @default(PENDING)
+  notes           String?
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+
+  prescriptions  Prescription[]
+  bills          Bill[]
+  medicalRecords MedicalRecord[]
+
+  @@index([patientId])
+  @@index([doctorId])
+  @@index([appointmentDate])
+  @@index([status])
+}
+
+model Prescription {
+  id            String       @id @default(uuid())
+  appointmentId String?
+  appointment   Appointment? @relation(fields: [appointmentId], references: [id], onDelete: SetNull)
+  doctorId      String
+  doctor        Doctor       @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+  patientId     String
+  patient       Patient      @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  diagnosis     String
+  medicines     String
+  dosage        String
+  instructions  String?
+  followUpDate  DateTime?
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  @@index([appointmentId])
+  @@index([doctorId])
+  @@index([patientId])
+}
+
+model MedicalRecord {
+  id              String         @id @default(uuid())
+  patientId       String
+  patient         Patient        @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  doctorId        String
+  doctor          Doctor         @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+  appointmentId   String?
+  appointment     Appointment?   @relation(fields: [appointmentId], references: [id], onDelete: SetNull)
+  chiefComplaint  String
+  diagnosis       String
+  allergies       String?
+  treatment       String?
+  notes           String?
+  bloodPressure   String?
+  pulseRate       String?
+  bodyTemperature String?
+  height          Float?
+  weight          Float?
+  reportFile      String?
+  visitDate       DateTime       @default(now())
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  uploadedFiles   UploadedFile[]
+
+  @@index([patientId])
+  @@index([doctorId])
+  @@index([visitDate])
+}
+
+model Bill {
+  id                String        @id @default(uuid())
+  patientId         String
+  patient           Patient       @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  appointmentId     String?
+  appointment       Appointment?  @relation(fields: [appointmentId], references: [id], onDelete: SetNull)
+  consultationFee   Float         @default(0)
+  additionalCharges Float         @default(0)
+  discount          Float         @default(0)
+  tax               Float         @default(0)
+  amount            Float
+  paymentStatus     PaymentStatus @default(PENDING)
+  paymentMethod     String?
+  invoiceNumber     String        @unique
+  generatedAt       DateTime      @default(now())
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+
+  @@index([patientId])
+  @@index([appointmentId])
+  @@index([paymentStatus])
+  @@index([invoiceNumber])
+}
+
+model SystemHealth {
+  id        String   @id @default(uuid())
+  status    String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model UploadedFile {
+  id              String         @id @default(uuid())
+  patientId       String?
+  patient         Patient?       @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  doctorId        String?
+  doctor          Doctor?        @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+  medicalRecordId String?
+  medicalRecord   MedicalRecord? @relation(fields: [medicalRecordId], references: [id], onDelete: Cascade)
+  fileName        String
+  fileUrl         String
+  fileType        String
+  fileSize        Int
+  publicId        String?
+  uploadedAt      DateTime       @default(now())
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  @@index([patientId])
+  @@index([doctorId])
+  @@index([medicalRecordId])
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title     String
+  message   String
+  type      String
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([isRead])
+}

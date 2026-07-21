@@ -1,0 +1,118 @@
+{
+  "info": {
+    "name": "Smart Hospital Management System API Collection",
+    "description": "Production API Collection for Smart Hospital Management System (Express + PostgreSQL + Socket.IO)",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Patient Signup",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"Jane Patient\",\n  \"email\": \"jane@example.com\",\n  \"password\": \"Patient@123\",\n  \"phoneNumber\": \"+1987654321\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/auth/signup", "host": ["{{baseUrl}}"], "path": ["auth", "signup"] }
+          }
+        },
+        {
+          "name": "Login Admin",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@hospital.com\",\n  \"password\": \"Admin@123\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/auth/login", "host": ["{{baseUrl}}"], "path": ["auth", "login"] }
+          }
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "url": { "raw": "{{baseUrl}}/auth/logout", "host": ["{{baseUrl}}"], "path": ["auth", "logout"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Admin Doctors",
+      "item": [
+        {
+          "name": "Get All Doctors",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/admin/doctors", "host": ["{{baseUrl}}"], "path": ["admin", "doctors"] }
+          }
+        },
+        {
+          "name": "Create Doctor",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"Dr. Robert Vance\",\n  \"email\": \"vance@hospital.com\",\n  \"phoneNumber\": \"+1555123456\",\n  \"password\": \"Doctor@123\",\n  \"department\": \"Cardiology\",\n  \"specialization\": \"Cardiologist\",\n  \"qualification\": \"MD, FACC\",\n  \"experience\": 12,\n  \"consultationFee\": 150,\n  \"licenseNumber\": \"LIC-CARD-2026-99\",\n  \"availabilityStatus\": \"AVAILABLE\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/admin/doctors", "host": ["{{baseUrl}}"], "path": ["admin", "doctors"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Appointments",
+      "item": [
+        {
+          "name": "Book Appointment",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"doctorId\": \"{{doctorId}}\",\n  \"appointmentDate\": \"2026-08-01\",\n  \"appointmentTime\": \"10:30 AM\",\n  \"reason\": \"Routine Cardiovascular Examination\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/appointments", "host": ["{{baseUrl}}"], "path": ["appointments"] }
+          }
+        },
+        {
+          "name": "Get Patient Appointments",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/appointments/my", "host": ["{{baseUrl}}"], "path": ["appointments", "my"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Notifications",
+      "item": [
+        {
+          "name": "Get User Notifications",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/notifications", "host": ["{{baseUrl}}"], "path": ["notifications"] }
+          }
+        },
+        {
+          "name": "Mark All as Read",
+          "request": {
+            "method": "PUT",
+            "url": { "raw": "{{baseUrl}}/notifications/read-all", "host": ["{{baseUrl}}"], "path": ["notifications", "read-all"] }
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:5000/api"
+    }
+  ]
+}
