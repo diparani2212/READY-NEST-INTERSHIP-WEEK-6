@@ -1,3 +1,7 @@
+databases:
+  - name: smart-hospital-db
+    plan: free
+
 services:
   - type: web
     name: smart-hospital-backend
@@ -15,7 +19,9 @@ services:
       - key: FRONTEND_URL
         sync: false
       - key: DATABASE_URL
-        sync: false
+        fromDatabase:
+          name: smart-hospital-db
+          property: connectionString
       - key: JWT_ACCESS_SECRET
         generateValue: true
       - key: JWT_REFRESH_SECRET
