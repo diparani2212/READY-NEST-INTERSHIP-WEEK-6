@@ -26,7 +26,12 @@ export interface ResetPasswordParams {
 }
 
 async function handleResponse(res: Response) {
-  const data = await res.json().catch(() => ({ success: false, message: 'Server response parsing failed' }));
+  let data: any;
+  try {
+    data = await res.json();
+  } catch {
+    data = { success: false, message: `Server returned invalid response (Status ${res.status})` };
+  }
   if (!res.ok) {
     throw new Error(data.message || `Request failed with status ${res.status}`);
   }

@@ -105,9 +105,21 @@ app.use('/api/notifications', notificationRoutes);
 // Global Error Handler
 app.use(errorHandler);
 
+import { execSync } from 'child_process';
+
 const PORT = env.PORT || 5000;
 
 httpServer.listen(PORT, () => {
   logger.info(`Server & Socket.IO running in ${env.NODE_ENV} mode on port ${PORT}`);
   logger.info(`Health check available at http://localhost:${PORT}/api/health`);
+  
+  // Asynchronously ensure DB tables and seed data exist
+  try {
+    logger.info('Synchronizing database schema and seed data...');
+    execSync('npx prisma db push --accept-data-loss', { stdio: 'inherit' });
+    execSync('npx prisma db seed', { stdio: 'inherit' });
+    logger.info('Database synchronization complete.');
+  } catch (err: any) {
+    logger.warn(`Database sync notice: ${err.message}`);
+  }
 });
