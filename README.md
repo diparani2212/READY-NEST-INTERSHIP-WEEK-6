@@ -226,6 +226,22 @@ NEXT_PUBLIC_BACKEND_URL=http://localhost:5000
 
 ---
 
+## 🔑 Demo Credentials
+
+These credentials are provided only for project evaluation and demonstration purposes.
+
+### Admin
+- **Email:** `admin@hospital.com`
+- **Password:** `Admin@123`
+
+### Doctor
+- Doctor accounts can be created by logging in as the Admin from the Admin Dashboard.
+
+### Patient
+- Patients can register using the public Signup page.
+
+---
+
 ## 🔗 Live Demo & Repositories
 
 ### GitHub Repositories
