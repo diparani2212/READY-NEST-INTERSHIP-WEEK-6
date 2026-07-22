@@ -41,6 +41,21 @@ app.use(
   cors({
     origin: (origin, callback) => {
       if (!origin) return callback(null, true);
+      if (env.NODE_ENV === 'production') {
+        const allowedOrigins = [
+          env.CORS_ORIGIN,
+          env.FRONTEND_URL,
+          'https://ready-nest-internship-week-6.vercel.app',
+          'https://ready-nest-intership-week-6.vercel.app',
+          'https://smart-hospital-management.vercel.app',
+        ].map(url => url?.replace(/\/+$/, ''));
+        
+        if (allowedOrigins.includes(origin.replace(/\/+$/, ''))) {
+          return callback(null, true);
+        } else {
+          return callback(new Error(`Origin ${origin} not allowed by CORS`));
+        }
+      }
       callback(null, origin);
     },
     credentials: true,
@@ -78,29 +93,71 @@ const limiter = rateLimit({
 
 app.use('/api', limiter);
 
-// Routes
+// Routes (Mounted with and without /api prefix for production URL compatibility)
 app.use('/api', healthRoutes);
+app.use('/health', healthRoutes);
+
 app.use('/api/auth', authRoutes);
+app.use('/auth', authRoutes);
+
 app.use('/api/admin/doctors', adminDoctorRoutes);
+app.use('/admin/doctors', adminDoctorRoutes);
+
 app.use('/api/patient', patientRoutes);
+app.use('/patient', patientRoutes);
+
 app.use('/api/doctors', patientDoctorRoutes);
+app.use('/doctors', patientDoctorRoutes);
+
 app.use('/api/appointments', appointmentRoutes);
+app.use('/appointments', appointmentRoutes);
+
 app.use('/api/doctor', doctorRoutes);
+app.use('/doctor', doctorRoutes);
+
 app.use('/api/prescriptions', prescriptionRoutes);
+app.use('/prescriptions', prescriptionRoutes);
+
 app.use('/api/medical-records', medicalRecordRoutes);
+app.use('/medical-records', medicalRecordRoutes);
+
 app.use('/api/admin/medical-records', adminMedicalRecordRoutes);
+app.use('/admin/medical-records', adminMedicalRecordRoutes);
+
 app.use('/api/admin/bills', adminBillRoutes);
+app.use('/admin/bills', adminBillRoutes);
+
 app.use('/api/patient/bills', patientBillRoutes);
+app.use('/patient/bills', patientBillRoutes);
+
 app.use('/api/doctor/bills', doctorBillRoutes);
+app.use('/doctor/bills', doctorBillRoutes);
+
 app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
 
 app.use('/api/profile', profileRoutes);
+app.use('/profile', profileRoutes);
+
 app.use('/api/medical-records', fileUploadRoutes);
 app.use('/api/admin/files', adminFileRoutes);
+app.use('/admin/files', adminFileRoutes);
+
 app.use('/api/admin', adminAnalyticsRoutes);
+app.use('/admin', adminAnalyticsRoutes);
+
 app.use('/api/doctor/dashboard', doctorAnalyticsRoutes);
 app.use('/api/patient/dashboard', patientAnalyticsRoutes);
+
 app.use('/api/notifications', notificationRoutes);
+app.use('/notifications', notificationRoutes);
+
+// JSON 404 Handler for unhandled routes
+app.use((req, res) => {
+  res.status(404).json({
+    success: false,
+    message: `API Route Not Found: ${req.method} ${req.originalUrl}`,
+  });
+});
 
 // Global Error Handler
 app.use(errorHandler);
@@ -113,13 +170,6 @@ httpServer.listen(PORT, () => {
   logger.info(`Server & Socket.IO running in ${env.NODE_ENV} mode on port ${PORT}`);
   logger.info(`Health check available at http://localhost:${PORT}/api/health`);
   
-  // Asynchronously ensure DB tables and seed data exist
-  try {
-    logger.info('Synchronizing database schema and seed data...');
-    execSync('npx prisma db push --accept-data-loss', { stdio: 'inherit' });
-    execSync('npx prisma db seed', { stdio: 'inherit' });
-    logger.info('Database synchronization complete.');
-  } catch (err: any) {
-    logger.warn(`Database sync notice: ${err.message}`);
-  }
+  // Database synchronization is handled out-of-band via package.json scripts to prevent process hangs in watch mode
+  logger.info('Database synchronization deferred (managed via package.json).');
 });
